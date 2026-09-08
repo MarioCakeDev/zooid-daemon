@@ -1,0 +1,30 @@
+services:
+  zooid:
+    image: ghcr.io/MarioCakeDev/zooid-daemon:latest
+    container_name: zooid
+    restart: unless-stopped
+    ports:
+      - "9099:9099"
+    volumes:
+      # Docker socket for managing agent containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Workforce config + agent workdirs
+      - /opt/matrix/zooid/workforce:/workforce
+    environment:
+      # Matrix credentials
+      - MATRIX_AS_TOKEN=${MATRIX_AS_TOKEN}
+      - MATRIX_HS_TOKEN=${MATRIX_HS_TOKEN}
+      # Agent environment variables (passed through to agent containers)
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - COOLIFY_TOKEN=${COOLIFY_TOKEN}
+      - COOLIFY_MCP_URL=${COOLIFY_MCP_URL}
+      - HA_TOKEN=${HA_TOKEN}
+      - HA_MCP_URL=${HA_MCP_URL}
+      - TRUENAS_URL=${TRUENAS_URL}
+      - TRUENAS_API_KEY=${TRUENAS_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9099/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
