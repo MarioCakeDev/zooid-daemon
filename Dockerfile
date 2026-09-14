@@ -14,8 +14,10 @@ RUN npm install -g zooid@latest
 # Verify installation
 RUN zooid --version
 
-# Working directory for the workforce
-WORKDIR /workforce
+# Keep this path identical to the host path the workforce directory is mounted
+# at, so bind sources the daemon hands to sibling agent containers (through the
+# host Docker socket) resolve to the real host paths.
+WORKDIR /opt/matrix/zooid/workforce
 
 # Expose the daemon port
 EXPOSE 9099

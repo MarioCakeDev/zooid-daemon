@@ -1,0 +1,28 @@
+services:
+  zooid:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "9099"
+    # Coolify injects the resource's environment variables into .env in this
+    # compose directory. Loading it here passes them to the daemon without
+    # committing any secrets to the repository.
+    env_file:
+      - .env
+    volumes:
+      # Docker socket for managing agent containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Workforce config + agent workdirs. Repository-relative bind source:
+      # Coolify resolves ./workforce into the resource's configuration directory.
+      - type: bind
+        source: ./workforce
+        target: /opt/matrix/zooid/workforce
+        is_directory: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9099/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
