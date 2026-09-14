@@ -11,6 +11,13 @@ RUN apt-get update && \
 # Install zooid CLI globally
 RUN npm install -g zooid@latest
 
+# zooid 0.14.x registers appservice users without `inhibit_login`, which
+# OAuth2/MAS homeservers (MSC3861) reject with
+# "400: This server uses OAuth2, so the inhibit_login parameter must be set to
+# true for appservice registrations." Add it so agent users are created.
+RUN sed -i 's/username: localpart2$/username: localpart2, inhibit_login: true/' \
+    /usr/local/lib/node_modules/zooid/dist/*.js
+
 # Verify installation
 RUN zooid --version
 
