@@ -22,9 +22,5 @@ WORKDIR /opt/matrix/zooid/workforce
 # Expose the daemon port
 EXPOSE 9099
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:9099/health || exit 1
-
 ENTRYPOINT ["zooid"]
 CMD ["start"]

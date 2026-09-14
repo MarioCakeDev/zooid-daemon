@@ -20,12 +20,6 @@ services:
         source: ./workforce
         target: /opt/matrix/zooid/workforce
         is_directory: true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9099/health"]
-      interval: 30s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
     # Traefik routing for the appservice endpoint. Declared here (rather than
     # in Coolify's per-service domain field) so it travels with the repo.
     # priority=1000 beats the legacy hand-written dynamic router that shares
@@ -39,9 +33,12 @@ services:
       - traefik.http.routers.zooidas.service=zooidas
       - traefik.http.services.zooidas.loadbalancer.server.port=9099
     # Attach to the Coolify proxy network so Traefik can discover and route to
-    # this container.
+    # this container. The alias gives Traefik (and the dynamic file router) a
+    # stable DNS name that survives container recreation.
     networks:
-      - coolify
+      coolify:
+        aliases:
+          - zooid-daemon
 
 networks:
   coolify:
