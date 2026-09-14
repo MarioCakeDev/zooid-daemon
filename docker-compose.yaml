@@ -26,3 +26,12 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+    # Attach to the Coolify proxy network so Traefik can discover and route to
+    # this container. Routing/labels themselves are managed by Coolify's
+    # application "Custom Labels" field, not here.
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
