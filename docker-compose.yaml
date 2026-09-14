@@ -26,9 +26,20 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+    # Traefik routing for the appservice endpoint. Declared here (rather than
+    # in Coolify's per-service domain field) so it travels with the repo.
+    # priority=1000 beats the legacy hand-written dynamic router that shares
+    # this Host rule and points at a stale IP.
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.zooidas.entrypoints=http
+      - traefik.http.routers.zooidas.rule=Host(`zooid.coolify.lan`)
+      - traefik.http.routers.zooidas.priority=1000
+      - traefik.http.routers.zooidas.service=zooidas
+      - traefik.http.services.zooidas.loadbalancer.server.port=9099
     # Attach to the Coolify proxy network so Traefik can discover and route to
-    # this container. Routing/labels themselves are managed by Coolify's
-    # application "Custom Labels" field, not here.
+    # this container.
     networks:
       - coolify
 
