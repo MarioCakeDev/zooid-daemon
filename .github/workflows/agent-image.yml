@@ -1,0 +1,37 @@
+name: Agent image
+
+on:
+  push:
+    branches: [zooid-compose-migration]
+    paths:
+      - "agents/**"
+      - ".github/workflows/agent-image.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: agents
+          push: true
+          tags: ghcr.io/mariocakedev/zooid-agent-opencode:latest
+
+      - name: Make the package public (best effort)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api --method PATCH /user/packages/container/zooid-agent-opencode -f visibility=public
