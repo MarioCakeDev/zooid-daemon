@@ -8,15 +8,15 @@ RUN apt-get update && \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install zooid CLI globally
-RUN npm install -g zooid@latest
+# Install zooid CLI globally. Pinned: patches/patch-zooid.mjs is structural and
+# must match this release's bundled source; the patch fails the build loudly if
+# the layout changes, so a bump is always explicit and verified.
+ARG ZOOID_VERSION=0.14.1
+RUN npm install -g zooid@${ZOOID_VERSION}
 
-# zooid 0.14.x registers appservice users without `inhibit_login`, which
-# OAuth2/MAS homeservers (MSC3861) reject with
-# "400: This server uses OAuth2, so the inhibit_login parameter must be set to
-# true for appservice registrations." Add it so agent users are created.
-RUN sed -i 's/username: localpart2$/username: localpart2, inhibit_login: true/' \
-    /usr/local/lib/node_modules/zooid/dist/*.js
+# Apply structural patches (inhibit_login for MAS/OAuth2, bootstrap retry).
+COPY patches /tmp/patches
+RUN node /tmp/patches/patch-zooid.mjs && rm -rf /tmp/patches
 
 # Verify installation
 RUN zooid --version
