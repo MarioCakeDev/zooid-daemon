@@ -14,12 +14,13 @@ services:
     volumes:
       # Docker socket for managing agent containers
       - /var/run/docker.sock:/var/run/docker.sock
-      # Workforce config + agent workdirs. Repository-relative bind source:
-      # Coolify resolves ./workforce into the resource's configuration directory.
-      - type: bind
-        source: ./workforce
-        target: /opt/matrix/zooid/workforce
-        is_directory: true
+      # Workforce config + agent workdirs. The host source and the container
+      # target MUST be the identical absolute path: the daemon computes per-agent
+      # context sockets under <cwd>/data/run/context-*.sock and passes those
+      # paths to the HOST docker daemon when spawning sibling agent containers,
+      # so the same path must resolve on the host. On Home Worker 01,
+      # /opt/matrix/zooid/workforce is a symlink to this resource's workforce dir.
+      - /opt/matrix/zooid/workforce:/opt/matrix/zooid/workforce
     # Traefik routing for the appservice endpoint. Declared here (rather than
     # in Coolify's per-service domain field) so it travels with the repo.
     # priority=1000 beats the legacy hand-written dynamic router that shares
