@@ -22,8 +22,9 @@ RUN node /tmp/patches/patch-zooid.mjs && rm -rf /tmp/patches
 RUN zooid --version
 
 # Keep this path identical to the host path the workforce directory is mounted
-# at, so bind sources the daemon hands to sibling agent containers (through the
-# host Docker socket) resolve to the real host paths.
+# at (docker-compose.yaml binds /opt/matrix/zooid/workforce to itself), so bind
+# sources the daemon hands to sibling agent containers (through the host Docker
+# socket) resolve to the real host paths.
 WORKDIR /opt/matrix/zooid/workforce
 
 # Expose the daemon port
