@@ -33,6 +33,19 @@ services:
       - traefik.http.routers.zooidas.priority=1000
       - traefik.http.routers.zooidas.service=zooidas
       - traefik.http.services.zooidas.loadbalancer.server.port=9099
+      # Public, path-specific ingress for inbound provider webhooks (GitHub
+      # pull_request for the reviewer). Only the /_zooid/webhooks prefix is
+      # forwarded; every other path on zooid.mariocake.de keeps hitting the
+      # zooid-web client. HMAC verification happens in the daemon, using the
+      # per-trigger `secret` (GITHUB_WEBHOOK_SECRET). Declared here so it
+      # survives redeploys and Traefik resolves the container IP itself.
+      - traefik.http.routers.zooidwh.entrypoints=https
+      - traefik.http.routers.zooidwh.rule=Host(`zooid.mariocake.de`) && PathPrefix(`/_zooid/webhooks`)
+      - traefik.http.routers.zooidwh.priority=1000
+      - traefik.http.routers.zooidwh.service=zooidwh
+      - traefik.http.routers.zooidwh.tls=true
+      - traefik.http.routers.zooidwh.tls.certresolver=letsencrypt
+      - traefik.http.services.zooidwh.loadbalancer.server.port=9099
     # Attach to the Coolify proxy network so Traefik can discover and route to
     # this container. The alias gives Traefik (and the dynamic file router) a
     # stable DNS name that survives container recreation.
