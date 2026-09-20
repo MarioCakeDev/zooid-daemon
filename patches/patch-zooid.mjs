@@ -98,45 +98,6 @@ try {
   die(`syntax check failed on patched ${chunk}`);
 }
 
-// --- Patch 3: make the per-room open-task cap configurable ------------------
-// transport-matrix's task-registry.ts hardcodes MAX_OPEN_TASKS_PER_ROOM = 5;
-// both the registry getter and the "at_capacity" refusal message read it. Make
-// it an env-tunable so the cap can be raised per deployment without a rebuild.
-// Default stays 5 when the variable is unset or invalid. The value is resolved
-// once at import time, so it must be set before the daemon process starts.
-const CAP_DECL = "var MAX_OPEN_TASKS_PER_ROOM = 5;";
-const CAP_MARK = "process.env.MAX_OPEN_TASKS_PER_ROOM";
-const CAP_PATCH = `var MAX_OPEN_TASKS_PER_ROOM = (() => {
-  const raw = process.env.MAX_OPEN_TASKS_PER_ROOM;
-  const n = Number.parseInt(raw ?? "", 10);
-  return Number.isFinite(n) && n > 0 ? n : 5;
-})();`;
-let capHits = 0;
-let capAlready = 0;
-let capPath = null;
-for (const f of jsFiles) {
-  const p = join(DIST, f);
-  const before = readFileSync(p, "utf8");
-  if (before.includes(CAP_MARK)) {
-    capAlready += 1;
-    capPath = p;
-    continue;
-  }
-  if (!before.includes(CAP_DECL)) continue;
-  writeFileSync(p, before.replace(CAP_DECL, CAP_PATCH));
-  capHits += 1;
-  capPath = p;
-}
-if (capHits === 0 && capAlready === 0) {
-  die("MAX_OPEN_TASKS_PER_ROOM anchor 'var MAX_OPEN_TASKS_PER_ROOM = 5;' not found");
-}
-try {
-  execFileSync(process.execPath, ["--check", capPath], { stdio: "inherit" });
-} catch {
-  die(`syntax check failed on patched ${capPath}`);
-}
-
 console.log(
-  `[patch-zooid] ok: inhibit_login applied=${inhibitHits} already=${inhibitAlready}, ` +
-    `bootstrap retry in ${chunk}, task cap env-driven applied=${capHits} already=${capAlready}`,
+  `[patch-zooid] ok: inhibit_login applied=${inhibitHits} already=${inhibitAlready}, bootstrap retry in ${chunk}`,
 );
