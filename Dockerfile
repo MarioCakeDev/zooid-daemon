@@ -5,9 +5,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Build the zooid CLI from our fork instead of the upstream npm package, so
-# fork-only fixes (e.g. the Element event mirror + interactive approvals) ship.
+# fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
+# a floating ref would make image contents unreproducible. Bump deliberately.
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=main
+ARG ZOOID_REF=15f430d54f560829e288ff5abf686d48368ce87f
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
