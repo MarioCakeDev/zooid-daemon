@@ -13,7 +13,7 @@ RUN corepack enable && \
     cd /src && git checkout "$ZOOID_REF" && \
     pnpm install --frozen-lockfile && \
     pnpm build && \
-    pnpm --filter zooid deploy --prod /app
+    pnpm --filter zooid deploy --prod --legacy /app
 
 FROM node:22-slim
 
