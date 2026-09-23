@@ -14,7 +14,7 @@ RUN corepack enable && \
     cd /src && git checkout "$ZOOID_REF" && \
     pnpm install --frozen-lockfile && \
     pnpm build && \
-    pnpm --filter zooid deploy --prod --legacy /app
+    cd packages/cli && pnpm pack --pack-destination /out
 
 FROM node:22-slim
 
@@ -26,14 +26,15 @@ RUN apt-get update && \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Deploy the built CLI and expose it as a global `zooid` on PATH. The dist is
-# bundled (tsup noExternal @zooid/*), so the patch script below can target the
-# same path the previous npm-installed image used.
-COPY --from=build /app /app
-RUN mkdir -p /usr/local/lib/node_modules && \
-    ln -s /app /usr/local/lib/node_modules/zooid && \
-    ln -s /app/dist/bin.js /usr/local/bin/zooid && \
-    chmod +x /app/dist/bin.js
+# Install the built CLI globally, npm-style (flat, real node_modules) at
+# /usr/local/lib/node_modules/zooid. This is NOT cosmetic: the daemon resolves
+# `@zooid/context-mcp/bin` at runtime and bind-mounts its directory into each
+# agent container as /zooid/context-mcp. The bind source must be a path the HOST
+# can see, so it must stay at the flat path the host already has — a pnpm
+# `.pnpm/<hash>` realpath is invisible to the host and mounts as an empty dir
+# (which silently disables the zooid MCP: no zooid_* tools in any agent).
+COPY --from=build /out/zooid-*.tgz /tmp/zooid.tgz
+RUN npm install -g /tmp/zooid.tgz && rm /tmp/zooid.tgz
 
 # Apply structural patches (inhibit_login for MAS/OAuth2, bootstrap retry).
 COPY patches /tmp/patches
