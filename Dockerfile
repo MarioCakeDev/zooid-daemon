@@ -1,3 +1,21 @@
+FROM node:22-slim AS build
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build the zooid CLI from our fork instead of the upstream npm package, so
+# fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
+# a floating ref would make image contents unreproducible. Bump deliberately.
+ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
+ARG ZOOID_REF=0f896080fcdbc6c7b6c26ca516877e1853bb16d7
+RUN corepack enable && \
+    git clone "$ZOOID_REPO" /src && \
+    cd /src && git checkout "$ZOOID_REF" && \
+    pnpm install --frozen-lockfile && \
+    pnpm build && \
+    cd packages/cli && pnpm pack --pack-destination /out
+
 FROM node:22-slim
 
 # Install Docker CLI (not daemon - we use the host's Docker via socket)
@@ -8,11 +26,15 @@ RUN apt-get update && \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install zooid CLI globally. Pinned: patches/patch-zooid.mjs is structural and
-# must match this release's bundled source; the patch fails the build loudly if
-# the layout changes, so a bump is always explicit and verified.
-ARG ZOOID_VERSION=0.14.1
-RUN npm install -g zooid@${ZOOID_VERSION}
+# Install the built CLI globally, npm-style (flat, real node_modules) at
+# /usr/local/lib/node_modules/zooid. This is NOT cosmetic: the daemon resolves
+# `@zooid/context-mcp/bin` at runtime and bind-mounts its directory into each
+# agent container as /zooid/context-mcp. The bind source must be a path the HOST
+# can see, so it must stay at the flat path the host already has — a pnpm
+# `.pnpm/<hash>` realpath is invisible to the host and mounts as an empty dir
+# (which silently disables the zooid MCP: no zooid_* tools in any agent).
+COPY --from=build /out/zooid-*.tgz /tmp/zooid.tgz
+RUN npm install -g /tmp/zooid.tgz && rm /tmp/zooid.tgz
 
 # Apply structural patches (inhibit_login for MAS/OAuth2, bootstrap retry).
 COPY patches /tmp/patches
