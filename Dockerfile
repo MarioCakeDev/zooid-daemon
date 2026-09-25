@@ -8,7 +8,7 @@ RUN apt-get update && \
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=cd95879beb101a35c945f22382b2568a168358eb
+ARG ZOOID_REF=1c83621a4fab764716cda472b45ff88fede61fd6
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
@@ -23,8 +23,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         docker.io \
         curl \
-        ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install the built CLI globally, npm-style (flat, real node_modules) at
 # /usr/local/lib/node_modules/zooid. This is NOT cosmetic: the daemon resolves
