@@ -23,8 +23,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         docker.io \
         curl \
-        ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install the built CLI globally, npm-style (flat, real node_modules) at
 # /usr/local/lib/node_modules/zooid. This is NOT cosmetic: the daemon resolves
