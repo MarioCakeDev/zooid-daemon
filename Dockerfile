@@ -8,7 +8,7 @@ RUN apt-get update && \
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=9794c94e21679674c30d36948aaa5407e49e7f14
+ARG ZOOID_REF=1c2dcb5d7de5684fd0cd18934caa70959640b8c7
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
