@@ -11,6 +11,12 @@ RUN apt-get update && \
 # session lifecycle) plus the fork's Element mirror, interactive approvals,
 # /interrupt, and ACP dead-container/wedged-session resilience.
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
+# DURABILITY: e65d018 is the head of MarioCakeDev/zooid branch
+# `feat/upstream-0.17-migration` (open PR #32) — not a merge commit. Do NOT
+# force-push or delete that branch until this pin is re-pointed, or the
+# `git checkout "$ZOOID_REF"` above fails and the image build breaks. Once
+# PR #32 merges, re-pin this to the resulting `main` commit (ideally the merge
+# commit).
 ARG ZOOID_REF=e65d018d6c44c8d5cc0692db9a68eb46cc834ec4
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
