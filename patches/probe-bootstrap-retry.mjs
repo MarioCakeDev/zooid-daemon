@@ -10,7 +10,10 @@ const DIST = "/usr/local/lib/node_modules/zooid/dist";
 const chunkFile = readdirSync(DIST).find(
   (f) =>
     f.endsWith(".js") &&
-    readFileSync(DIST + "/" + f, "utf8").includes("__bootstrapOnce"),
+    readFileSync(DIST + "/" + f, "utf8").includes("__bootstrapOnce") &&
+    /^[ \t]*async bootstrap\((?:opts\d*) = \{\}\) \{$/m.test(
+      readFileSync(DIST + "/" + f, "utf8"),
+    ),
 );
 if (!chunkFile) {
   console.log("PROBE_FAIL no patched chunk found");
@@ -82,3 +85,16 @@ console.log(
       retryDelaysMs: delays,
     }),
 );
+
+// A real gate: the patched wrapper must retry exactly until the fake 503s stop
+// (2 failures then success), not resolve early and not loop forever.
+const passed =
+  outcome === "resolved" &&
+  stats.registerBot === 3 &&
+  stats.setDisplayName === 3 &&
+  delays.length >= 2;
+if (!passed) {
+  console.log("PROBE_FAIL wrapper did not retry as expected");
+  process.exit(1);
+}
+process.exit(0);
