@@ -7,17 +7,18 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# e65d018 = fork PR #32: upstream 0.17.0 (zooid_handoff, ACP elicitation, ACP
+# 395be75 = fork PR #32: upstream 0.17.0 (zooid_handoff, ACP elicitation, ACP
 # session lifecycle) plus the fork's Element mirror, interactive approvals,
-# /interrupt, and ACP dead-container/wedged-session resilience.
+# /interrupt, and ACP dead-container/wedged-session resilience; plus the fix for
+# the ordinary in-thread handoff return (closed-task-thread misclassification).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-# DURABILITY: e65d018 is the head of MarioCakeDev/zooid branch
+# DURABILITY: 395be75 is the head of MarioCakeDev/zooid branch
 # `feat/upstream-0.17-migration` (open PR #32) — not a merge commit. Do NOT
 # force-push or delete that branch until this pin is re-pointed, or the
 # `git checkout "$ZOOID_REF"` above fails and the image build breaks. Once
 # PR #32 merges, re-pin this to the resulting `main` commit (ideally the merge
 # commit).
-ARG ZOOID_REF=e65d018d6c44c8d5cc0692db9a68eb46cc834ec4
+ARG ZOOID_REF=395be75eec5c1e8b96f969d170ecc91f0dc3a034
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
