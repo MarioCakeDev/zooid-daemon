@@ -7,12 +7,13 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# b3ed5bd8 = MarioCakeDev/zooid `main` after PR #34 merged: everything in
-# 490e1783 (tool taglines — web-search keywords and a per-family subject) plus
-# the params-dedup fix (an argument already on the tagline is dropped from the
-# input block below it). This is a merge commit on `main` — a durable ref.
+# 79b736ee = MarioCakeDev/zooid `main` after PR #35 merged: an opt-in thread
+# completion notice. When `announce.thread_completion` is on, a finished
+# thread-master turn posts one top-level `m.text` that mentions the author of
+# the thread root and links to the thread's latest message. Default off. This
+# is a squash commit on `main` — a durable ref (previous: b3ed5bd8, PR #34).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=b3ed5bd85434209237921eac65c219bd886add70
+ARG ZOOID_REF=79b736eefd64a32ec17b15bd0ebaee76f16a8ed9
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
