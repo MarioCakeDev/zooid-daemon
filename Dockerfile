@@ -42,6 +42,15 @@ RUN apt-get update && \
 COPY --from=build /out/zooid-*.tgz /tmp/zooid.tgz
 RUN npm install -g /tmp/zooid.tgz && rm /tmp/zooid.tgz
 
+# Overwrite the registry-installed context-mcp with our fork build. The CLI
+# tarball declares `@zooid/context-mcp` as a normal dependency, so the npm
+# install above fetches it from the npm registry (upstream) — every fork-only
+# change to packages/context-mcp would silently never ship (the CLI's own code
+# is bundled by tsup and does ship; this runtime-resolved package does not).
+# The daemon resolves `@zooid/context-mcp/bin` and bind-mounts this directory
+# into agents, so this COPY is what actually delivers context-mcp fixes.
+COPY --from=build /src/packages/context-mcp/dist /usr/local/lib/node_modules/zooid/node_modules/@zooid/context-mcp/dist
+
 # Apply structural patches (inhibit_login for MAS/OAuth2, bootstrap retry).
 COPY patches /tmp/patches
 RUN node /tmp/patches/patch-zooid.mjs && rm -rf /tmp/patches
