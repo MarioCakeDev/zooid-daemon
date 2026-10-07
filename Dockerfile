@@ -7,12 +7,12 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# 1be7a2cc = MarioCakeDev/zooid `main` after PR #38 merged (squash): a delegated
-# task's completion is now delivered in the task's OWN thread (threadRoot =
-# task.threadRoot) instead of the caller's spawning thread, so results no longer
-# leak into unrelated threads. Durable ref (previous: 3b9f147c, PR #37).
+# cc671dc5 = MarioCakeDev/zooid `main` after PR #39 merged (squash): a CLOSED
+# task's thread no longer caps zooid_start_task_threads nor depth-limits
+# startTasks — the enclosing-task check now requires phase === 'open'
+# (TaskRegistry.enclosingTaskForRoot). Durable ref (previous: 1be7a2cc, PR #38).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=1be7a2cc1c4291233d6b0461fe0a35854c9326a9
+ARG ZOOID_REF=cc671dc54efbca35a0304f20b6cf69e0442a7d1e
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
