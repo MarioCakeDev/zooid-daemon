@@ -7,10 +7,12 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# 55c257f0 = MarioCakeDev/zooid `main` after PR #44 merged (squash): the Code
-# Mode tagline keeps the script's line breaks — fenced in the plain body (for
-# markdown clients) and `<br>`-separated in the HTML, on top of PR #43's 📜 icon
-# and full (unclamped) script.
+# fbe198bd = MarioCakeDev/zooid `main` after PR #45 merged (squash): the Code
+# Mode `code` argument is no longer clamped by `RAW_INPUT_STR_MAX` (250) — the
+# script arrives whole, on top of #43's 📜 icon + full script and #44's
+# line-break handling.
+# Previous pin: 55c257f0 = `main` after PR #44 (squash) — the tagline kept the
+# script's line breaks (fenced in the plain body, `<br>`-separated in the HTML).
 # Previous pin: c6f5ff91 = `main` after PR #43 (squash) — the `execute` tool got
 # the 📜 icon and showed its whole `code` verbatim instead of the collapsed
 # `code=…`.
@@ -24,7 +26,7 @@ RUN apt-get update && \
 # foreign server and the daemon routes to the wrong thread. It also multiplied
 # the tool list and left one live context-MCP per session. Re-pinned to #40.)
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=55c257f030c093b88b1cbaf780ba7d50a52f3f98
+ARG ZOOID_REF=fbe198bdf7302d7e7bd07afd3058026483b4532f
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
