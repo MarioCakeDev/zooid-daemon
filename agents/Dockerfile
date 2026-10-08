@@ -10,17 +10,20 @@
 # protocol v1, so the zooid `opencode` preset (`command: opencode, args: [acp]`)
 # is unchanged.
 #
-# Elicitation requirement (zooid 0.17): the daemon uses ACP *form* elicitation.
-# The `opencode acp` in this image must advertise `elicitation.form` in its ACP
-# `initialize` capabilities. Verify after the base/image is rebuilt:
-#   - `opencode --version` (confirm the expected build)
-#   - the ACP `initialize` response's `agentCapabilities.elicitation`.
+# ACP capability note (measured 2026-10-08): both V1 1.18.33 and V2 2.0.25 answer
+# `initialize` with protocolVersion 1 and do NOT advertise an
+# `agentCapabilities.elicitation` key, so interactive questions use the poll MCP
+# (`question_ask`) rather than ACP form elicitation on either harness — not a V2
+# regression. The only capability delta is `mcpCapabilities`: V1 `{http:true,
+# sse:true}`, V2 `{http:true, sse:false}` (the zooid context/poll MCPs are HTTP).
+# Verify after a rebuild: `opencode --version` and the `initialize` reply.
 #
 # Build:  docker build -t zooid-agent-opencode:local agents/
 # Then set `container.image` in zooid.yaml to `zooid-agent-opencode:local`.
 #
-# ROLLBACK: the published `:latest` tag is the V1 image and is never moved. To
-# roll back, point `container.image` at
+# ROLLBACK: the published `:latest` tag is the V1 image and is never moved once
+# the V2 workflow (which no longer pushes `:latest`) is in place. To roll back,
+# point `container.image` at
 # `ghcr.io/mariocakedev/zooid-agent-opencode:latest` and respawn the agents —
 # no rebuild, no config edit. See ../ROLLBACK.md.
 FROM ghcr.io/zooid-ai/agent-opencode:latest
