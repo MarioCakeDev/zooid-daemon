@@ -7,14 +7,18 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# fe21b5af = MarioCakeDev/zooid `main` after PR #41 merged (squash): each
-# context-MCP task/handoff call is pinned to the originating turn's thread
-# (--thread-root/--channel-id/--session-key) and returns are delivered to the
-# caller's captured session, so concurrent same-agent turns can no longer
-# cross-bind (the 2026-10-08 "mention general" / "ping" bleed). Previous:
-# 27609c7d (PR #40 — task tools advertised unconditionally).
+# 27609c7d = MarioCakeDev/zooid `main` after PR #40 merged (squash): the
+# context-MCP advertises the task tools unconditionally and the daemon
+# authorizes each call.
+# (PR #41 was merged and then reverted from this pin on 2026-10-08: it gave each
+# session a unique context-MCP name and pinned the turn's thread, but did NOT
+# stop cross-thread bleed — opencode registers MCP servers at instance/directory
+# scope and copies every session's toolset into every session (upstream
+# opencode#40978; the fix, #40979, was closed unmerged), so the model picks a
+# foreign server and the daemon routes to the wrong thread. It also multiplied
+# the tool list and left one live context-MCP per session. Re-pinned to #40.)
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=fe21b5afbc29c2d1151418fd53c741bc33d92342
+ARG ZOOID_REF=27609c7d9e5cbe89d26bae9cef91f4e51134fcb8
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
