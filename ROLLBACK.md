@@ -3,8 +3,9 @@
 The V2 agent image is published as
 `ghcr.io/mariocakedev/zooid-agent-opencode:opencode-v2` (and an immutable
 `:sha-<commit>` tag). The historically published `:latest` tag is the **V1**
-image and is never overwritten by the V2 workflow, so it is a ready rollback
-target.
+image. It is a ready rollback target **once the workflow fix in PR #2 is
+applied** (that diff removes `:latest` from this workflow's tags); until then,
+merging the V2 `agents/Dockerfile` would overwrite `:latest`.
 
 No rebuild and no config edit are required:
 
