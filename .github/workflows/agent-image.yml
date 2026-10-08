@@ -2,7 +2,7 @@ name: Agent image
 
 on:
   push:
-    branches: [zooid-compose-migration]
+    branches: [zooid-compose-migration, feat/opencode-v2]
     paths:
       - "agents/**"
       - ".github/workflows/agent-image.yml"
@@ -28,7 +28,11 @@ jobs:
         with:
           context: agents
           push: true
-          tags: ghcr.io/mariocakedev/zooid-agent-opencode:latest
+          # V2 is published under explicit tags; :latest is intentionally left to
+          # the V1 build so it stays a ready rollback target.
+          tags: |
+            ghcr.io/mariocakedev/zooid-agent-opencode:opencode-v2
+            ghcr.io/mariocakedev/zooid-agent-opencode:sha-${{ github.sha }}
 
       - name: Make the package public (best effort)
         continue-on-error: true
