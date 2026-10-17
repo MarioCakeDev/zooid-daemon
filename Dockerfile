@@ -7,30 +7,16 @@ RUN apt-get update && \
 # Build the zooid CLI from our fork instead of the upstream npm package, so
 # fork-only fixes ship. Pinned to an explicit commit: this is a build input, and
 # a floating ref would make image contents unreproducible. Bump deliberately.
-# a9b04665 = MarioCakeDev/zooid `main` after PR #46 merged (squash): the Code
-# Mode script is rendered with literal `\n` (not `<br>`) in the HTML body, so
-# line-counting / text-extraction clients keep it multi-line (Element Web/Desktop
-# line numbers + highlight.js; Element X `wholeText`).
-# Previous pin: fbe198bd = `main` after PR #45 merged (squash): the Code
-# Mode `code` argument is no longer clamped by `RAW_INPUT_STR_MAX` (250) — the
-# script arrives whole, on top of #43's 📜 icon + full script and #44's
-# line-break handling.
-# Previous pin: 55c257f0 = `main` after PR #44 (squash) — the tagline kept the
-# script's line breaks (fenced in the plain body, `<br>`-separated in the HTML).
-# Previous pin: c6f5ff91 = `main` after PR #43 (squash) — the `execute` tool got
-# the 📜 icon and showed its whole `code` verbatim instead of the collapsed
-# `code=…`.
-# Previous pin: 27609c7d = `main` after PR #40 (squash) — the context-MCP
-# advertises the task tools unconditionally and the daemon authorizes each call.
-# (PR #41 was merged and then reverted from this pin on 2026-10-08: it gave each
-# session a unique context-MCP name and pinned the turn's thread, but did NOT
-# stop cross-thread bleed — opencode registers MCP servers at instance/directory
-# scope and copies every session's toolset into every session (upstream
-# opencode#40978; the fix, #40979, was closed unmerged), so the model picks a
-# foreign server and the daemon routes to the wrong thread. It also multiplied
-# the tool list and left one live context-MCP per session. Re-pinned to #40.)
+# fe0e5b06 = MarioCakeDev/zooid main after PR #47 (merge of upstream zooid-ai/zooid
+# @ 55a51bd0, 0.17.0 -> 0.18.0; fast-forward, so main IS the merge commit). Brings
+# upstream typing-registry, dev.zooid.turn.end turn_id/stop_reason, thread-history
+# has_more/batching, createRoom creator retry, send-message alias, context-mcp
+# describeRole surfacing, per-agent runtime: + the vm runtime (packages/runtime-vm) —
+# on top of the fork delta (Element mirror, reaction approvals, /interrupt, ACP
+# resilience, unconditional task tools, Code-Mode tagline). FORK-DELTA.md regenerated.
+# Previous pin: a9b04665 = main after PR #46 (Code Mode script literal newlines).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=a9b04665d8b45d1ab7aa5f29dbd8412e6d1f8c93
+ARG ZOOID_REF=fe0e5b06081d4390d70971f65dbfe7e0ffc66923
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
