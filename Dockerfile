@@ -8,8 +8,14 @@ RUN apt-get update && \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install zooid CLI globally
-RUN npm install -g zooid@latest
+# Pinned: patches/apply-poll-binding.mjs anchors on this release's acp-client.
+RUN npm install -g zooid@0.18.0
+
+# Bind the poll MCP server to each agent session (room + thread headers) so a
+# poll can never be placed in another conversation's thread. Fails the build if
+# the anchor is gone rather than shipping an unbound poll tool.
+COPY patches/ /patches/
+RUN node /patches/apply-poll-binding.mjs
 
 # Verify installation
 RUN zooid --version
