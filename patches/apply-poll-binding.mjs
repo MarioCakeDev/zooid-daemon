@@ -26,21 +26,22 @@ const INJECT = `${ANCHOR}
     // thread root it is working in. poll-mcp refuses to place a poll anywhere
     // else, so a model that grounded on the wrong room cannot ask a question
     // into a foreign thread.
-    if (process.env.POLL_MCP_TOKEN && this.options.agent.matrix?.user_id) {
+    const pollSender = this.options.agent.env?.MATRIX_SENDER;
+    if (process.env.POLL_MCP_TOKEN && pollSender) {
       mcpServers.push({
         name: "poll",
         type: "http",
         url: process.env.POLL_MCP_URL ?? "http://poll-mcp.coolify.lan/mcp",
         headers: [
           { name: "Authorization", value: "Bearer " + process.env.POLL_MCP_TOKEN },
-          { name: "X-Zooid-Sender", value: this.options.agent.matrix.user_id },
+          { name: "X-Zooid-Sender", value: pollSender },
           { name: "X-Zooid-Room", value: channelId ?? contextThreadId ?? threadId },
           { name: "X-Zooid-Thread", value: contextThreadId ?? threadId },
         ],
       });
     } else {
       process.stderr.write(
-        "[acp-client] poll binding NOT injected: POLL_MCP_TOKEN or agents.<name>.matrix.user_id is missing\\n",
+        "[acp-client] poll binding NOT injected: POLL_MCP_TOKEN or MATRIX_SENDER is missing\\n",
       );
     }`;
 
