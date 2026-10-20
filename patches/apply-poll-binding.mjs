@@ -5,20 +5,21 @@
 // session working in #general could place a poll in an #infra thread
 // (2026-10-20). opencode accepts an `http` mcpServers entry in ACP
 // `session/new` / `session/load`, so the daemon can hand every session its own
-// poll server whose headers carry that session's room and thread root. poll-mcp
-// treats those headers as authoritative.
+// poll server whose headers carry that session's room and thread root;
+// poll-mcp treats those headers as authoritative.
 //
-// The patch is anchored on a pinned zooid release; if the anchor disappears the
-// build fails instead of silently shipping an unbound poll tool.
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+// zooid 0.18.0 runs the tsup bundle in dist/ (Node refuses type stripping under
+// node_modules), so this patches the bundled chunk, not the @zooid/acp-client
+// sources. The build fails if the anchor is gone instead of silently shipping an
+// unbound poll tool.
+import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
-const TARGET =
-  "/usr/local/lib/node_modules/zooid/node_modules/@zooid/acp-client/src/acp-client.ts";
+const DIST = "/usr/local/lib/node_modules/zooid/dist";
 const MARKER = "[zooid-poll-binding]";
 
-const ANCHOR = `    const mcpServers = this.options.contextSpawn
-      ? [await this.options.contextSpawn(contextThreadId ?? threadId, channelId, threadId)]
-      : []`;
+const ANCHOR =
+  "    const mcpServers = this.options.contextSpawn ? [await this.options.contextSpawn(contextThreadId ?? threadId, channelId, threadId)] : [];";
 
 const INJECT = `${ANCHOR}
     // ${MARKER} Give this session its own poll server, bound to the room and
@@ -27,38 +28,49 @@ const INJECT = `${ANCHOR}
     // into a foreign thread.
     if (process.env.POLL_MCP_TOKEN && this.options.agent.matrix?.user_id) {
       mcpServers.push({
-        name: 'poll',
-        type: 'http',
-        url: process.env.POLL_MCP_URL ?? 'http://poll-mcp.coolify.lan/mcp',
+        name: "poll",
+        type: "http",
+        url: process.env.POLL_MCP_URL ?? "http://poll-mcp.coolify.lan/mcp",
         headers: [
-          { name: 'Authorization', value: \`Bearer \${process.env.POLL_MCP_TOKEN}\` },
-          { name: 'X-Zooid-Sender', value: this.options.agent.matrix.user_id },
-          { name: 'X-Zooid-Room', value: channelId ?? contextThreadId ?? threadId },
-          { name: 'X-Zooid-Thread', value: contextThreadId ?? threadId },
+          { name: "Authorization", value: "Bearer " + process.env.POLL_MCP_TOKEN },
+          { name: "X-Zooid-Sender", value: this.options.agent.matrix.user_id },
+          { name: "X-Zooid-Room", value: channelId ?? contextThreadId ?? threadId },
+          { name: "X-Zooid-Thread", value: contextThreadId ?? threadId },
         ],
-      } as never)
+      });
     } else {
       process.stderr.write(
-        '[acp-client] poll binding NOT injected: POLL_MCP_TOKEN or agents.<name>.matrix.user_id is missing\\n',
-      )
+        "[acp-client] poll binding NOT injected: POLL_MCP_TOKEN or agents.<name>.matrix.user_id is missing\\n",
+      );
     }`;
 
-if (!existsSync(TARGET)) {
-  console.error(`poll-binding patch: ${TARGET} not found — zooid layout changed, refusing to build`);
+let files;
+try {
+  files = readdirSync(DIST).filter((f) => f.endsWith(".js"));
+} catch (error) {
+  console.error(`poll-binding patch: cannot read ${DIST} — ${error.message}`);
   process.exit(1);
 }
 
-const source = readFileSync(TARGET, "utf8");
-if (source.includes(MARKER)) {
-  console.log("poll-binding patch: already applied");
-  process.exit(0);
+let patched = 0;
+let already = 0;
+for (const file of files) {
+  const path = join(DIST, file);
+  const source = readFileSync(path, "utf8");
+  if (source.includes(MARKER)) {
+    already += 1;
+    continue;
+  }
+  if (!source.includes(ANCHOR)) continue;
+  writeFileSync(path, source.replace(ANCHOR, INJECT), "utf8");
+  patched += 1;
+  console.log(`poll-binding patch: applied to dist/${file}`);
 }
-if (!source.includes(ANCHOR)) {
+
+if (patched === 0 && already === 0) {
   console.error(
-    "poll-binding patch: ensureSession anchor not found — zooid's acp-client changed, refusing to build",
+    "poll-binding patch: ensureSession anchor not found in zooid/dist — zooid changed, refusing to build",
   );
   process.exit(1);
 }
-
-writeFileSync(TARGET, source.replace(ANCHOR, INJECT), "utf8");
-console.log("poll-binding patch: applied");
+if (patched === 0) console.log("poll-binding patch: already applied");
