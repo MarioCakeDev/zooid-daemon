@@ -55,7 +55,12 @@ COPY --from=build /src/packages/context-mcp/dist /usr/local/lib/node_modules/zoo
 
 # Apply structural patches (inhibit_login for MAS/OAuth2, bootstrap retry).
 COPY patches /tmp/patches
-RUN node /tmp/patches/patch-zooid.mjs && rm -rf /tmp/patches
+RUN node /tmp/patches/patch-zooid.mjs
+
+# Bind the poll MCP server to each agent session (room + thread headers) so a
+# poll can never be placed in another conversation's thread. Patches the tsup
+# bundle in dist/ and fails the build if the anchor is gone.
+RUN node /tmp/patches/apply-poll-binding.mjs && rm -rf /tmp/patches
 
 # Verify installation
 RUN zooid --version
