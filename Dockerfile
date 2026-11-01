@@ -16,7 +16,7 @@ RUN apt-get update && \
 # resilience, unconditional task tools, Code-Mode tagline). FORK-DELTA.md regenerated.
 # Previous pin: a9b04665 = main after PR #46 (Code Mode script literal newlines).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=fe0e5b06081d4390d70971f65dbfe7e0ffc66923
+ARG ZOOID_REF=f9b3df6ed2119468a9897fc958748d2f2246f846
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
