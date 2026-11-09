@@ -14,9 +14,14 @@ RUN apt-get update && \
 # describeRole surfacing, per-agent runtime: + the vm runtime (packages/runtime-vm) —
 # on top of the fork delta (Element mirror, reaction approvals, /interrupt, ACP
 # resilience, unconditional task tools, Code-Mode tagline). FORK-DELTA.md regenerated.
-# Previous pin: a9b04665 = main after PR #46 (Code Mode script literal newlines).
+# b0941011 = main after PR #49 (one ACP worker per conversation; isolation gate
+# packages/core/test/thread-isolation.test.ts). NOT DEPLOYED YET — the rollout is gated
+# on hosting the local MCP servers once per agent over HTTP, otherwise every
+# conversation spawns its own coolify/ssh/crowdsec/truenas/pocketid fan-out and the
+# worker (~11.6 GiB free) runs out.
+# Previous pin: f9b3df6e = main after PR #48 (release context spawn on session end).
 ARG ZOOID_REPO=https://github.com/MarioCakeDev/zooid
-ARG ZOOID_REF=f9b3df6ed2119468a9897fc958748d2f2246f846
+ARG ZOOID_REF=b0941011075f9d95f1522f5d91fc167b6f851526
 RUN corepack enable && \
     git clone "$ZOOID_REPO" /src && \
     cd /src && git checkout "$ZOOID_REF" && \
